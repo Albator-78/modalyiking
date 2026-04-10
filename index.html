@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Table Périodique des Hexagrammes × Tarot — Yi King Interactif</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'EB Garamond', Georgia, serif;
+  background: #EDE2C8;
+  background-image:
+    radial-gradient(ellipse at 20% 30%, rgba(245,220,180,0.7) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 70%, rgba(210,185,140,0.6) 0%, transparent 55%);
+  min-height: 100vh;
+  padding: 28px 16px;
+  color: #2C1810;
+}
+
+.page-frame {
+  border: 3px double #9B7D2E;
+  padding: 24px 20px;
+  position: relative;
+  max-width: 1080px;
+  margin: 0 auto;
+  background: rgba(252,245,228,0.88);
+  box-shadow: 0 8px 40px rgba(80,50,10,0.25), inset 0 0 60px rgba(200,170,100,0.1);
+}
+.page-frame::before {
+  content: '⟡';
+  position: absolute; top: -16px; left: 50%;
+  transform: translateX(-50%);
+  background: #F5EDD4; padding: 0 14px;
+  color: #9B7D2E; font-size: 1.5em; line-height: 1;
+}
+.corner { position: absolute; color: #9B7D2E; font-size: 1.1em; line-height: 1; }
+.corner.tl { top: 7px; left: 9px; }
+.corner.tr { top: 7px; right: 9px; }
+.corner.bl { bottom: 7px; left: 9px; }
+.corner.br { bottom: 7px; right: 9px; }
+
+h1 {
+  font-family: 'Cinzel Decorative', serif;
+  text-align: center; font-size: 1.55em; color: #7A0000;
+  letter-spacing: 0.04em; margin-bottom: 5px;
+  text-shadow: 0 1px 0 rgba(155,125,46,0.4);
+}
+.subtitle {
+  font-family: 'Cinzel', serif; text-align: center; font-size: 0.7em;
+  color: #7A5C2E; letter-spacing: 0.14em; margin-bottom: 4px; font-style: italic;
+}
+.click-hint {
+  text-align: center; font-size: 0.72em; color: #9B7D2E; margin-bottom: 18px;
+  font-style: italic; letter-spacing: 0.05em;
+}
+
+.key-section {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 8px; margin-bottom: 20px;
+}
+.key-suit { border-radius: 3px; padding: 8px 10px; border: 1px solid transparent; }
+.key-suit h3 {
+  font-family: 'Cinzel', serif; font-size: 0.72em; font-weight: 700;
+  margin-bottom: 5px; display: flex; align-items: center; gap: 6px;
+  letter-spacing: 0.05em;
+}
+.color-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.key-suit p { font-size: 0.72em; line-height: 1.65; }
+.key-suit em { font-size: 0.88em; opacity: 0.8; }
+.kb { background: rgba(180,28,28,0.07); border-color: rgba(180,28,28,0.28); }
+.kb h3 { color: #7F1D1D; }
+.kc { background: rgba(29,78,216,0.07); border-color: rgba(29,78,216,0.28); }
+.kc h3 { color: #1E3A8A; }
+.ke { background: rgba(161,107,0,0.09); border-color: rgba(161,107,0,0.35); }
+.ke h3 { color: #78350F; }
+.kd { background: rgba(20,130,60,0.07); border-color: rgba(20,130,60,0.28); }
+.kd h3 { color: #14532D; }
+
+.table-wrapper { overflow-x: auto; }
+
+table { border-collapse: separate; border-spacing: 2px; margin: 0 auto; }
+
+.col-header, .row-header { font-family: 'Cinzel', serif; text-align: center; padding: 3px 5px; vertical-align: middle; }
+.trig-sym { font-size: 1.75em; display: block; line-height: 1.1; }
+.trig-nm  { font-size: 0.58em; color: #8B6A30; display: block; letter-spacing: 0.04em; }
+.axis-title { font-family: 'Cinzel', serif; font-size: 0.6em; color: #9B7D2E; letter-spacing: 0.14em; text-align: center; padding: 3px 2px; }
+
+.hex-cell {
+  width: 110px; height: 94px; padding: 3px 5px 4px;
+  border-radius: 2px; cursor: pointer;
+  transition: transform 0.13s ease, box-shadow 0.13s ease;
+  position: relative; display: flex; flex-direction: column; justify-content: space-between;
+  border: 1px solid transparent;
+}
+.hex-cell:hover {
+  transform: scale(1.1); z-index: 30;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+  border-color: #D4AF37 !important;
+}
+.hex-cell.active { outline: 3px solid #D4AF37; outline-offset: 2px; z-index: 25; }
+
+.b  { background: #FCEAE8; color: #6B1212; border-color: rgba(200,60,40,0.22); }
+.c  { background: #E0EEFF; color: #162B6B; border-color: rgba(50,100,220,0.22); }
+.e  { background: #FEF6D8; color: #5C3509; border-color: rgba(200,150,20,0.28); }
+.d  { background: #E4F8EB; color: #0F3D20; border-color: rgba(30,140,70,0.22); }
+.bM { background: #7F1D1D; color: #FFF5F0; border: 2px solid #D4AF37 !important; }
+.cM { background: #1E3A8A; color: #EEF4FF; border: 2px solid #D4AF37 !important; }
+.eM { background: #78350F; color: #FFFBEF; border: 2px solid #D4AF37 !important; }
+.dM { background: #14532D; color: #F0FDF5; border: 2px solid #D4AF37 !important; }
+
+.pure-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #D4AF37 40%, #D4AF37 60%, transparent 100%);
+  border-radius: 2px 2px 0 0;
+}
+
+.h-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.h-num { font-family: 'Cinzel', serif; font-size: 0.74em; font-weight: 700; opacity: 0.85; }
+.h-star { font-size: 0.72em; color: #D4AF37; }
+.h-sym {
+  font-size: 1.95em; text-align: center; line-height: 1; flex: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+.h-name { font-size: 0.55em; text-align: center; font-style: italic; line-height: 1.2; opacity: 0.9; }
+.h-tarot { font-family: 'Cinzel', serif; font-size: 0.51em; text-align: center; font-weight: 600; line-height: 1.2; letter-spacing: 0.02em; }
+.b  .h-tarot { color: #991B1B; }
+.c  .h-tarot { color: #1E40AF; }
+.e  .h-tarot { color: #78350F; }
+.d  .h-tarot { color: #166534; }
+.bM .h-tarot, .cM .h-tarot, .eM .h-tarot, .dM .h-tarot { color: #D4AF37; }
+
+.v-axis {
+  writing-mode: vertical-rl; transform: rotate(180deg);
+  font-family: 'Cinzel', serif; font-size: 0.58em; color: #9B7D2E;
+  letter-spacing: 0.13em; text-align: center; padding: 4px 2px;
+}
+
+/* ========== MODAL ========== */
+.modal-overlay {
+  display: none; position: fixed;
+  inset: 0; background: rgba(20,12,4,0.72);
+  z-index: 1000; align-items: center; justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(3px);
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: linear-gradient(160deg, #FDF6E3 0%, #F5E8C5 100%);
+  border: 2px solid #9B7D2E;
+  border-radius: 4px;
+  max-width: 680px; width: 100%;
+  max-height: 88vh; overflow: hidden;
+  display: flex; flex-direction: column;
+  box-shadow: 0 20px 80px rgba(40,20,0,0.7), inset 0 0 40px rgba(200,160,80,0.08);
+  animation: modalIn 0.22s ease;
+  position: relative;
+}
+@keyframes modalIn {
+  from { opacity:0; transform: translateY(18px) scale(0.97); }
+  to   { opacity:1; transform: translateY(0) scale(1); }
+}
+
+.modal-header {
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid rgba(155,125,46,0.35);
+  flex-shrink: 0;
+  position: relative;
+}
+.modal-num-sym {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 6px;
+}
+.modal-hexsym {
+  font-size: 3.4em; line-height: 1; color: #5C3A10;
+}
+.modal-num-block {}
+.modal-num {
+  font-family: 'Cinzel', serif; font-size: 0.72em; color: #9B7D2E;
+  letter-spacing: 0.14em; text-transform: uppercase;
+}
+.modal-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.4em; color: #7A0000;
+  letter-spacing: 0.03em; line-height: 1.2;
+}
+.modal-cn { font-family: 'EB Garamond', serif; font-size: 1em; color: #8B6A30; font-style: italic; }
+.modal-tarot-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 4px 12px; border-radius: 20px; margin-top: 8px;
+  font-family: 'Cinzel', serif; font-size: 0.7em; font-weight: 600;
+  letter-spacing: 0.06em;
+}
+.badge-b  { background: rgba(127,29,29,0.12); color: #7F1D1D; border: 1px solid rgba(127,29,29,0.3); }
+.badge-c  { background: rgba(30,58,138,0.12); color: #1E3A8A; border: 1px solid rgba(30,58,138,0.3); }
+.badge-e  { background: rgba(120,53,15,0.12); color: #78350F; border: 1px solid rgba(120,53,15,0.3); }
+.badge-d  { background: rgba(20,83,45,0.12);  color: #14532D; border: 1px solid rgba(20,83,45,0.3); }
+.badge-bM { background: #7F1D1D; color: #D4AF37; border: 1px solid #D4AF37; }
+.badge-cM { background: #1E3A8A; color: #D4AF37; border: 1px solid #D4AF37; }
+.badge-eM { background: #78350F; color: #D4AF37; border: 1px solid #D4AF37; }
+.badge-dM { background: #14532D; color: #D4AF37; border: 1px solid #D4AF37; }
+
+.modal-close {
+  position: absolute; top: 14px; right: 16px;
+  background: none; border: none; cursor: pointer;
+  font-size: 1.4em; color: #9B7D2E; line-height: 1;
+  transition: color 0.15s, transform 0.15s;
+}
+.modal-close:hover { color: #7A0000; transform: scale(1.2); }
+
+.modal-tabs {
+  display: flex; border-bottom: 1px solid rgba(155,125,46,0.3);
+  flex-shrink: 0; padding: 0 22px;
+}
+.modal-tab {
+  padding: 9px 16px 8px; cursor: pointer;
+  font-family: 'Cinzel', serif; font-size: 0.65em;
+  letter-spacing: 0.1em; color: #9B7D2E;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+  user-select: none;
+}
+.modal-tab:hover { color: #5C3A10; }
+.modal-tab.active { color: #7A0000; border-bottom-color: #7A0000; }
+
+.modal-body {
+  flex: 1; overflow-y: auto; padding: 20px 24px;
+  scroll-behavior: smooth;
+}
+.modal-body::-webkit-scrollbar { width: 5px; }
+.modal-body::-webkit-scrollbar-track { background: rgba(200,170,100,0.15); }
+.modal-body::-webkit-scrollbar-thumb { background: rgba(155,125,46,0.45); border-radius: 3px; }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.yk-section { margin-bottom: 20px; }
+.yk-label {
+  font-family: 'Cinzel', serif; font-size: 0.68em; letter-spacing: 0.14em;
+  color: #9B7D2E; text-transform: uppercase; margin-bottom: 7px;
+  padding-bottom: 5px; border-bottom: 1px solid rgba(155,125,46,0.25);
+}
+.yk-text { font-size: 1.05em; line-height: 1.75; color: #2C1810; }
+.yk-text em { color: #6B3A10; font-style: italic; }
+.yk-text strong { color: #5C2A08; }
+
+.trig-info {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px;
+}
+.trig-card {
+  background: rgba(200,160,80,0.1); border: 1px solid rgba(155,125,46,0.25);
+  border-radius: 3px; padding: 10px 12px;
+}
+.trig-card .tc-label { font-family: 'Cinzel', serif; font-size: 0.62em; letter-spacing: 0.1em; color: #9B7D2E; margin-bottom: 4px; }
+.trig-card .tc-sym { font-size: 2em; line-height: 1; color: #5C3A10; display: inline-block; margin-right: 6px; vertical-align: middle; }
+.trig-card .tc-name { font-family: 'EB Garamond', serif; font-size: 0.9em; color: #2C1810; vertical-align: middle; }
+.trig-card .tc-attr { font-size: 0.78em; color: #7A5C2E; font-style: italic; margin-top: 3px; }
+
+.nav-arrows {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 24px 16px; border-top: 1px solid rgba(155,125,46,0.3);
+  flex-shrink: 0;
+}
+.nav-btn {
+  background: none; border: 1px solid rgba(155,125,46,0.4); color: #9B7D2E;
+  padding: 5px 14px; border-radius: 2px; cursor: pointer;
+  font-family: 'Cinzel', serif; font-size: 0.62em; letter-spacing: 0.1em;
+  transition: all 0.15s;
+}
+.nav-btn:hover { background: rgba(155,125,46,0.15); color: #5C3A10; border-color: #9B7D2E; }
+.nav-center { font-family: 'Cinzel', serif; font-size: 0.62em; color: #9B7D2E; letter-spacing: 0.08em; }
+
+.footer-note {
+  margin-top: 18px; font-size: 0.7em; color: #7A5C2E; text-align: center;
+  font-style: italic; line-height: 1.7;
+  border-top: 1px solid rgba(155,125,46,0.35); padding-top: 12px;
+}
+.footer-note strong { font-style: normal; color: #5C3A10; }
+</style>
+</head>
+<body>
+
+<div class="page-frame">
+  <span class="corner tl">❧</span><span class="corner tr">❧</span>
+  <span class="corner bl">❧</span><span class="corner br">❧</span>
+
+  <h1>Table Périodique des Hexagrammes</h1>
+  <div class="subtitle">I Ching × Tarot de Marseille &nbsp;·&nbsp; Correspondances ésotériques &nbsp;·&nbsp; Arnauld de Beaugency</div>
+  <div class="click-hint">✦ Cliquez sur un hexagramme pour consulter le Jugement et le Commentaire traditionnel ✦</div>
+
+  <div class="key-section">
+    <div class="key-suit kb">
+      <h3><span class="color-dot" style="background:#7F1D1D"></span> Bâtons — Feu</h3>
+      <p>Trigrammes : ☳ Tonnerre &amp; ☲ Feu<br>
+        <strong>IV · L'Empereur</strong> = ☲☲ Hex.30<br>
+        <strong>V · Le Pape</strong> = ☳☳ Hex.51<br><em>14 Arcanes Mineures · As–Roi</em></p>
+    </div>
+    <div class="key-suit kc">
+      <h3><span class="color-dot" style="background:#1E3A8A"></span> Coupes — Eau</h3>
+      <p>Trigrammes : ☵ Eau &amp; ☱ Lac<br>
+        <strong>III · L'Impératrice</strong> = ☵☵ Hex.29<br>
+        <strong>VI · L'Amoureux</strong> = ☱☱ Hex.58<br><em>14 Arcanes Mineures · As–Roi</em></p>
+    </div>
+    <div class="key-suit ke">
+      <h3><span class="color-dot" style="background:#78350F"></span> Épées — Air</h3>
+      <p>Trigrammes : ☴ Vent &amp; ☰ Ciel<br>
+        <strong>I · Le Bateleur</strong> = ☰☰ Hex.1<br>
+        <strong>VII · Le Chariot</strong> = ☴☴ Hex.57<br><em>14 Arcanes Mineures · As–Roi</em></p>
+    </div>
+    <div class="key-suit kd">
+      <h3><span class="color-dot" style="background:#14532D"></span> Deniers — Terre</h3>
+      <p>Trigrammes : ☷ Terre &amp; ☶ Montagne<br>
+        <strong>II · La Papesse</strong> = ☷☷ Hex.2<br>
+        <strong>VIII · La Justice</strong> = ☶☶ Hex.52<br><em>14 Arcanes Mineures · As–Roi</em></p>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table id="hexTable"></table>
+  </div>
+
+  <div class="footer-note">
+    <strong>Principe :</strong> Le trigramme supérieur détermine la couleur de la carte.
+    Les <strong>8 hexagrammes purs</strong> (diagonale) → <strong>8 premières Arcanes Majeures</strong>.
+    Les <strong>56 hexagrammes mixtes</strong> → <strong>56 Arcanes Mineures</strong> (As–Roi × 4 couleurs).<br>
+    Jugements et Commentaires : Yi King (Wen Wang / Duc de Zhou / Confucius) · Table : Hodebert &amp; Lautier · Correspondances Tarot : Arnauld de Beaugency ✦
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <button class="modal-close" id="modalClose" title="Fermer">✕</button>
+      <div class="modal-num-sym">
+        <div class="modal-hexsym" id="mSym"></div>
+        <div class="modal-num-block">
+          <div class="modal-num" id="mNum"></div>
+          <div class="modal-title" id="mTitle"></div>
+          <div class="modal-cn" id="mCn"></div>
+        </div>
+      </div>
+      <div id="mBadge"></div>
+    </div>
+
+    <div class="modal-tabs">
+      <div class="modal-tab active" data-tab="jugement">Jugement</div>
+      <div class="modal-tab" data-tab="commentaire">Commentaire</div>
+      <div class="modal-tab" data-tab="image">Image &amp; Trigrammes</div>
+      <div class="modal-tab" data-tab="tarot">Correspondance Tarot</div>
+    </div>
+
+    <div class="modal-body">
+      <div class="tab-panel active" id="tab-jugement">
+        <div class="yk-section">
+          <div class="yk-label">Jugement — Le Roi Wen</div>
+          <div class="yk-text" id="mJugement"></div>
+        </div>
+        <div class="yk-section">
+          <div class="yk-label">Commentaire du Jugement — Confucius</div>
+          <div class="yk-text" id="mComJugement"></div>
+        </div>
+      </div>
+      <div class="tab-panel" id="tab-commentaire">
+        <div class="yk-section">
+          <div class="yk-label">Image — Le Duc de Zhou</div>
+          <div class="yk-text" id="mImage"></div>
+        </div>
+        <div class="yk-section">
+          <div class="yk-label">Commentaire de l'Image — Tradition</div>
+          <div class="yk-text" id="mComImage"></div>
+        </div>
+      </div>
+      <div class="tab-panel" id="tab-image">
+        <div class="yk-section">
+          <div class="yk-label">Structure des Trigrammes</div>
+          <div class="trig-info" id="mTrigInfo"></div>
+        </div>
+        <div class="yk-section" style="margin-top:14px;">
+          <div class="yk-label">Signification ésotérique</div>
+          <div class="yk-text" id="mEsoterique"></div>
+        </div>
+      </div>
+      <div class="tab-panel" id="tab-tarot">
+        <div class="yk-section">
+          <div class="yk-label">Lame du Tarot de Marseille</div>
+          <div class="yk-text" id="mTarotDetail"></div>
+        </div>
+        <div class="yk-section">
+          <div class="yk-label">Résonance symbolique</div>
+          <div class="yk-text" id="mResonance"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-arrows">
+      <button class="nav-btn" id="navPrev">← Précédent</button>
+      <div class="nav-center" id="navCenter"></div>
+      <button class="nav-btn" id="navNext">Suivant →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── TRIGRAMMES ───────────────────────────────────────────────────────────────
+const TRIG = ['☷','☶','☵','☴','☳','☲','☱','☰'];
+const TNMS = ['Terre','Montagne','Eau','Vent','Tonnerre','Feu','Lac','Ciel'];
+const TATTR = [
+  'Réceptivité, douceur, mère',
+  'Immobilité, arrêt, fils cadet',
+  'Danger, précipice, fils du milieu',
+  'Douceur, pénétration, fille aînée',
+  'Mouvement, choc, fils aîné',
+  'Clarté, lumière, fille du milieu',
+  'Joie, ouverture, fille cadette',
+  'Force créatrice, ciel, père'
+];
+const TELM = ['Terre','Montagne','Eau','Bois/Vent','Tonnerre','Feu','Lac','Métal/Ciel'];
+
+const GRID = [
+  [2,23,8,20,16,35,45,12],
+  [15,52,39,53,62,56,31,33],
+  [7,4,29,59,40,64,47,6],
+  [46,18,48,57,32,50,28,44],
+  [24,27,3,42,51,21,17,25],
+  [36,22,63,37,55,30,49,13],
+  [19,41,60,61,54,38,58,10],
+  [11,26,5,9,34,14,43,1]
+];
+
+// Yi King data: jugement, commentaire du jugement, image, commentaire image, ésotérique
+// Source : tradition confucéenne, commentaires des Dix Ailes (Shi Yi)
+const YK = {
+1:{cn:"乾 Qián",j:"Force créatrice suprême. La persévérance apporte le succès.",cj:"Immense est le Créateur ! Fort, sain, honnête, permanent. Les six lignes yang se déploient selon le bon moment. Chevauchant les six dragons, on traverse le ciel.",im:"Le mouvement du Ciel est plein de puissance. Ainsi l'homme supérieur se renforce lui-même sans relâche.",ci:"Le Ciel est l'image de la force pure. Le sage tire de cette contemplation l'énergie de se parfaire jour après jour, sans jamais s'arrêter.",es:"L'hexagramme pur du Ciel symbolise la force créatrice absolue, le Père de toutes choses. Les six lignes yang représentent le plein accomplissement de l'énergie positive. Dans le Tarot, le Bateleur manifeste cette énergie créatrice au seuil de l'action."},
+2:{cn:"坤 Kūn",j:"La force réceptive suprême. La persévérance d'une jument apporte le succès.",cj:"Parfaite est la réceptivité ! Elle reçoit le Ciel et porte toutes choses. Sa vertu est d'harmoniser l'infini. Elle contient toutes choses en une glorieuse transformation.",im:"La condition de la Terre : la réceptivité. L'homme supérieur, à la largeur de caractère, porte le monde extérieur.",ci:"La Terre reçoit tout sans résistance. Le sage cultive ainsi une réceptivité illimitée, portant le poids du monde avec humilité et constance.",es:"L'hexagramme pur de la Terre représente la puissance réceptive absolue, la Mère de toutes choses. Dans le Tarot, la Papesse incarne cette sagesse silencieuse, gardienne des mystères non révélés."},
+3:{cn:"屯 Zhūn",j:"Difficultés initiales. Succès par la persévérance. Il ne faut rien entreprendre. Il est utile d'établir des aides.",cj:"Difficultés initiales : la rigidité et la douceur commencent à s'unir, et la naissance est difficile. Agitation au sein du danger. Progrès suprême par la fermeté.",im:"Les nuages et le tonnerre : difficultés initiales. L'homme supérieur met de l'ordre dans sa confusion.",ci:"Le tonnerre dans les nuages : la naissance d'un nouvel ordre dans le chaos. Le sage, face aux commencements difficiles, organise avec patience et ne se précipite pas.",es:"Le premier mouvement dans le chaos primordial. L'eau sous le tonnerre évoque la naissance de la vie — difficile, prometteuse, nécessitant aide et patience."},
+4:{cn:"蒙 Méng",j:"Jeunesse insensée. Succès. Je ne cherche pas le jeune insensé, c'est lui qui me cherche. Au premier oracle, je l'instruis ; si la question est répétée, c'est manque de respect.",cj:"La montagne sous l'eau : danger en bas, arrêt en haut. L'immaturité est l'état de celui qui ne sait pas encore où se diriger.",im:"Une source jaillit au pied de la montagne : image de la jeunesse. L'homme supérieur consolide son caractère par une conduite irréprochable.",ci:"L'eau fraîche de la source descend la montagne avec incertitude — tel l'esprit du débutant qui cherche son chemin. Le maître attend d'être consulté.",es:"L'enseignement vrai ne s'impose pas : il répond à une quête sincère. L'eau jaillit naturellement ; la sagesse aussi se révèle à qui cherche vraiment."},
+5:{cn:"需 Xū",j:"Attente sincère. Lumière et succès. Persévérance apporte bonheur. Il est utile de traverser les grandes eaux.",cj:"En attendant, on a foi et lumière. La fermeté apporte succès et rectitude. Il est utile de traverser les grandes eaux.",im:"Nuages qui montent au ciel : l'image de l'attente. L'homme supérieur mange, boit et se réjouit.",ci:"L'eau monte vers le ciel sous forme de nuages — mais ne peut y rester sans se transformer. Attendre n'est pas rester inactif : c'est se fortifier pour le moment propice.",es:"La patience active du guerrier avant la bataille. Nourrir ses forces dans l'attente, garder l'esprit clair, la confiance intacte."},
+6:{cn:"訟 Sòng",j:"Conflit. Vous êtes sincère et rencontrez l'opposition. Prudence et persévérance médiocre apportent bonheur. Grande persévérance apporte malheur.",cj:"Conflit : le haut est rigide, le bas est dangereux. Danger et force : conflit. Chercher le milieu et être correct mène au bonheur.",im:"Le ciel et l'eau vont en sens contraires : image du conflit. L'homme supérieur, dans ses affaires, réfléchit bien au début.",ci:"Le Ciel monte, l'eau descend — opposition naturelle. Avant tout engagement, examiner soigneusement les causes évite d'aggraver les conflits.",es:"Le conflit surgit quand deux forces légitimes s'opposent sans médiation. Ni victoire absolue ni défaite totale : le sage cherche la voie du juste milieu."},
+7:{cn:"師 Shī",j:"L'Armée. La persévérance, un homme de valeur : bonheur, pas de faute.",cj:"L'Armée : multitude. Fermeté et justice : l'homme supérieur mène les peuples. Agir avec justice mène au bonheur.",im:"L'eau au milieu de la terre : l'Armée. L'homme supérieur, par sa générosité envers le peuple, accroît ses forces.",ci:"L'eau contenue dans la terre représente une force dormante mais immense. La légitimité et la vertu du chef font toute la différence entre une armée et une horde.",es:"La force organisée au service du bien commun. L'eau cachée dans la terre — ressource invisible mais vitale. Le chef juste mobilise les énergies sans les épuiser."},
+8:{cn:"比 Bǐ",j:"Alliance. Bonheur. Examiner l'oracle : si vous avez continuité, fermeté et justice, pas de défaut. Ceux qui hésitent viendront. Ceux qui viennent trop tard rencontrent le malheur.",cj:"Alliance : bonheur. Alliance : aide. La soumission suit la vertu centrale.",im:"Sur la terre, de l'eau : l'Alliance. Les anciens rois établissaient les États et entretenaient des relations avec les seigneurs.",ci:"L'eau s'écoule sur la terre, cherchant son niveau — image de l'union naturelle. L'alliance vraie naît d'une attraction mutuelle fondée sur des valeurs partagées.",es:"L'union des cœurs et des forces. L'eau épouse la forme de la terre sans la forcer. Le lien authentique précède toute organisation formelle."},
+9:{cn:"小畜 Xiǎo Xù",j:"La Force dompteuse du petit. Succès. Nuages denses venant de l'ouest.",cj:"La douceur obtient succès. La fermeté est au centre. La volonté avance. Le nuage et la pluie ne tombent pas encore — le chemin n'est pas achevé.",im:"Le vent souffle haut dans le ciel : image de la petite force dompteuse. L'homme supérieur perfectionne les aspects extérieurs de sa nature.",ci:"Un vent léger rassemble les nuages mais ne peut encore provoquer la pluie. La force est présente mais pas encore suffisante pour accomplir le grand changement.",es:"La retenue nécessaire avant l'action décisive. Cultiver les formes extérieures — courtoisie, culture, raffinement — prépare le terrain aux grandes réalisations."},
+10:{cn:"履 Lǚ",j:"Conduite. Fouler la queue du tigre. Il ne mord pas. Succès.",cj:"La douceur foule la rigidité. On est joyeux et répond à la force du ciel. Marcher ainsi, fouler la queue du tigre sans se faire mordre.",im:"Le ciel en haut, le lac en bas : image de la conduite juste. L'homme supérieur distingue le haut et le bas, affermi ainsi la volonté du peuple.",ci:"Marcher avec discernement entre les forces opposées. Le lac reflète le ciel : humble en bas, lumineux en haut. La juste conduite tient compte des différences de nature.",es:"La démarche consciente à travers le danger. La douceur du lac sous la puissance du ciel — marcher sans arrogance là où les forces sont immenses."},
+11:{cn:"泰 Tài",j:"Prospérité. Le petit s'en va, le grand vient. Bonheur. Succès.",cj:"Prospérité : le petit s'en va, le grand vient — bonheur et succès. Alors le Ciel et la Terre se conjuguent, et les dix mille êtres communiquent.",im:"Le Ciel et la Terre s'unissent : prospérité. Le souverain partage les richesses du Ciel et de la Terre, complétant et réglant les dons des deux.",ci:"La Terre monte, le Ciel descend — contre leur nature apparente, ils se rencontrent et s'échangent. La prospérité naît de cette communication profonde.",es:"L'union harmonieuse des principes céleste et terrestre. Quand yin et yang se répondent, la vie fleurit. La paix intérieure rayonne naturellement vers l'extérieur."},
+12:{cn:"否 Pǐ",j:"Adversité. Gens qui ne s'accordent pas. Pas propice à la persévérance de l'homme supérieur. Le grand s'en va, le petit vient.",cj:"Adversité : le grand s'en va, le petit vient. Alors le Ciel et la Terre ne communiquent pas, et les dix mille êtres ne s'épanouissent pas.",im:"Le Ciel et la Terre ne communiquent pas : adversité. L'homme supérieur, dans les temps difficiles, replonge dans sa vertu intérieure.",ci:"Le Ciel s'éloigne, la Terre s'affaisse — rupture de la communication vitale. La stagnation extérieure invite à la retraite intérieure et au renforcement de l'essence.",es:"La coupure entre les mondes céleste et terrestre. Le sage ne se décourage pas mais rentre en lui-même, préservant sa vertu pour les temps meilleurs."},
+13:{cn:"同人 Tóng Rén",j:"S'accorder avec les hommes. En pleine campagne. Succès. Il est utile de traverser les grandes eaux. La persévérance de l'homme supérieur est bénéfique.",cj:"S'accorder avec les hommes : la douceur obtient la position centrale et répond à la force du Ciel. La communauté des hommes dit : succès.",im:"Le feu sous le ciel : s'accorder avec les hommes. L'homme supérieur classe les êtres et distingue les choses.",ci:"Le feu s'élève naturellement vers le ciel — image de la lumière partagée. L'accord authentique avec les autres exige clarté, discernement et absence d'intérêt personnel.",es:"La fraternité universelle fondée sur des principes clairs et partagés. Le feu éclaire tous les êtres sans distinction — la vraie communauté transcende les intérêts particuliers."},
+14:{cn:"大有 Dà Yǒu",j:"Grande possession. Succès suprême.",cj:"Grande possession : la douceur est en position honorable et centrale, et le haut et le bas répondent à elle.",im:"Le feu au-dessus du Ciel : grande possession. L'homme supérieur réprime le mal et favorise le bien, obéissant ainsi à la belle volonté du Ciel.",ci:"Le soleil brillant au plus haut du ciel illumine tout sans exception. La grande possession implique une grande responsabilité : distribuer les bienfaits, ne pas garder pour soi.",es:"L'abondance spirituelle et matérielle au service de tous. Posséder beaucoup oblige à éclairer beaucoup. Le Roi de Bâtons incarne cette maîtrise généreuse."},
+15:{cn:"謙 Qiān",j:"Modestie. Succès. L'homme supérieur mène les choses à leur terme.",cj:"La modestie mène au succès — c'est la voie du Ciel qui se penche vers le bas et répand sa lumière. C'est la voie de la Terre qui s'élève.",im:"Au milieu de la Terre se trouve une Montagne : image de la modestie. L'homme supérieur réduit ce qui est trop, augmente ce qui est insuffisant.",ci:"La montagne cachée sous la terre — sa hauteur masquée, non pas pour tromper mais par humilité véritable. La modestie vraie nivèle sans ostentation.",es:"La puissance dissimulée de celui qui s'efface. La montagne sous la terre est invisible mais solide. Véritable humilité : non pas faiblesse, mais force qui ne se montre pas."},
+16:{cn:"豫 Yù",j:"Enthousiasme. Il est utile d'instituer des aides et de mettre en marche les armées.",cj:"L'enthousiasme : la rigidité répond et la volonté s'accomplit. Enthousiasme : suivre le mouvement du Ciel et de la Terre.",im:"Le tonnerre sort de la terre avec énergie : image de l'enthousiasme. Les anciens rois composaient la musique pour honorer la vertu.",ci:"L'éclair jaillit, le tonnerre gronde — la terre tressaille d'enthousiasme. La musique des anciens captait cette énergie cosmique pour l'offrir aux dieux et élever les hommes.",es:"L'élan joyeux qui met en mouvement. L'As de Bâtons : l'étincelle première, le désir d'agir, l'énergie qui cherche sa forme dans le monde."},
+17:{cn:"隨 Suí",j:"Suivre. Succès suprême. Persévérance bénéfique. Pas de défaut.",cj:"Suivre : la rigidité vient se placer sous la douceur, le mouvement et la joie. Grand succès, fermeté, pas de défaut.",im:"Le tonnerre au milieu du lac : image de suivre. L'homme supérieur, au crépuscule, se repose et récupère.",ci:"Le tonnerre descend dans le lac pour se reposer — l'énergie masculine s'abandonne à la réceptivité féminine. Suivre le temps et s'adapter à chaque saison.",es:"L'art de s'adapter sans se perdre. Suivre n'est pas se soumettre aveuglément, mais lire le cours naturel des choses et y participer consciemment."},
+18:{cn:"蠱 Gǔ",j:"Remédier au corrompu. Succès suprême. Il est utile de traverser les grandes eaux. Avant le jour de départ : trois jours. Après le jour de départ : trois jours.",cj:"Remédier au corrompu : rigidité en haut, douceur en bas. Travailler à corriger ce qui est corrompu.",im:"Le vent sous la montagne : image du corrompu. L'homme supérieur stimule le peuple et fortifie sa vertu.",ci:"Le vent stagnant sous la montagne génère la corruption. Il faut agir avec vigueur pour rétablir l'ordre — mais en comprenant d'abord les causes profondes.",es:"La nécessaire réforme des héritages empoisonnés. Ce qui a été négligé par les ancêtres doit être remis en ordre par les descendants — devoir filial et renouveau."},
+19:{cn:"臨 Lín",j:"Approche. Succès suprême. Persévérance bénéfique. Quand le huitième mois arrive, il y aura malheur.",cj:"Approche : la rigidité avance graduellement et croît. Joie et soumission ; la rigidité est centrale.",im:"La terre au-dessus du lac : image de l'approche. L'homme supérieur est inépuisable dans son enseignement et sans limite dans sa tolérance.",ci:"La terre s'approche du lac, s'y mire et s'y reconnaît. L'approche vraie combine douceur et profondeur, constance et adaptation aux saisons.",es:"Le grand qui se penche vers le petit. L'autorité bienveillante qui approche le peuple avec générosité. La profondeur du lac sous la solidité de la terre."},
+20:{cn:"觀 Guān",j:"Contemplation. L'ablution a été faite, mais pas encore l'offrande. La confiance et le respect sont pleins.",cj:"Regarder en bas et observer en haut. La contemplation de la vertu divine unit les quatre coins du monde.",im:"Le vent souffle sur la terre : image de la contemplation. Les anciens rois visitaient les régions, observaient le peuple et donnaient leur enseignement.",ci:"Le vent parcourt toute la terre, observant sans s'arrêter. La contemplation vraie est active : elle circule, observe, comprend avant d'agir.",es:"La vision panoramique du sage sur la tour. L'As d'Épées : la pensée qui pénètre les apparences pour saisir l'essence des choses."},
+21:{cn:"噬嗑 Shì Kè",j:"Mordre et unir. Succès. Il est utile d'user du droit pénal.",cj:"Mordre et unir : bouche et mastication. Rigidité et douceur divisées, mouvement et clarté, tonnerre et feu.",im:"Tonnerre et éclair : mordre et unir. Les anciens rois rendaient la justice et promulguaient les lois.",ci:"Le tonnerre et l'éclair ensemble — l'un frappe, l'autre illumine la scène. La justice doit mordre l'obstacle entre les deux lèvres pour restaurer la communication.",es:"La nécessité de lever l'obstacle pour restaurer l'union. Quelque chose s'est coincé entre les mâchoires du monde — il faut la résolution ferme du 9 de Bâtons pour le trancher."},
+22:{cn:"賁 Bì",j:"Beauté et ornement. Succès. Dans les petites choses, il est utile d'entreprendre quelque chose.",cj:"La beauté : douceur vient orner la rigidité. La clarté que l'on voit en bas est le feu. Sa clarté s'arrête et c'est la montagne.",im:"Au pied de la montagne, le feu : image de la beauté. L'homme supérieur éclaire la conduite du gouvernement, mais n'ose pas décider les affaires importantes.",ci:"Le feu éclaire la montagne de sa lumière vacillante — beauté passagère, ornement extérieur. La splendeur des formes n'est qu'un voile : elle accompagne mais ne remplace pas le fond.",es:"L'art comme voile du sacré. Les 10 de Deniers évoquent cet accomplissement ornementé, la perfection formelle qui couronne une œuvre accomplie."},
+23:{cn:"剝 Bō",j:"Érosion. Il ne sert à rien d'entreprendre quoi que ce soit.",cj:"Érosion : le petit avance et prive le grand. C'est la voie des ténèbres qui grandissent.",im:"La montagne s'appuie sur la terre : image de l'érosion. Ceux d'en haut ne peuvent se maintenir que s'ils accordent repos et sécurité à ceux d'en bas.",ci:"La montagne repose sur la terre qui, si elle cède, entraîne la chute. L'As de Deniers rappelle que toute fondation doit être entretenue, renouvelée.",es:"Le retrait progressif de la lumière. L'érosion par le bas, la force yin qui monte et ronge. Temps de retrait et de conservation des forces essentielles."},
+24:{cn:"復 Fù",j:"Le retour. Succès. Sortir et rentrer sans faiblesse. Des amis viennent sans faute. Revenir sur sa voie au bout de sept jours.",cj:"Le retour : la dureté revient. Mouvement et réceptivité. Se mouvoir sans blesse : sortir et rentrer sans faiblesse.",im:"Le tonnerre au milieu de la terre : image du retour. Les anciens rois, au solstice d'hiver, fermaient les passes.",ci:"Le premier trait yang renaît sous six traits yin — le solstice d'hiver, le renouveau imperceptible. Un brin de lumière suffit pour annoncer le retour de la vie.",es:"Le point de retournement cosmique. Le solstice d'hiver : la lumière naît au cœur de l'obscurité. Les 7 de Deniers : patience et foi dans le cycle naturel."},
+25:{cn:"無妄 Wú Wàng",j:"L'Innocence. Succès suprême. La persévérance bénéfique. Si quelqu'un qui n'est pas droit entreprend quoi que ce soit, cela ne réussit pas.",cj:"L'innocence : la rigidité vient de l'extérieur pour devenir maîtresse. Mouvement et force, la rigidité est centrale et répond.",im:"Sous le Ciel, le tonnerre se déplace : toutes choses atteignent leur innocence naturelle. Les anciens rois, riches en vertu, cultivaient les êtres selon leur saison.",ci:"Le tonnerre sous le ciel éveille la nature à son être propre, sans artifice. L'innocence vraie n't pas naïveté mais spontanéité parfaite — action sans calcul.",es:"L'action pure, non polluée par les désirs et calculs. Ce qui advient sans intention mauvaise est innocent. Les 9 d'Épées : purification par l'épreuve."},
+26:{cn:"大畜 Dà Xù",j:"La grande force dompteuse. La persévérance bénéfique. Ne pas manger à la maison apporte bonheur. Il est utile de traverser les grandes eaux.",cj:"Grande force dompteuse : la rigidité est solide et honorable, lumière quotidienne, renouvelant sa vertu.",im:"Le Ciel au milieu de la montagne : grande force dompteuse. L'homme supérieur acquiert beaucoup d'informations sur les paroles et les actions des anciens.",ci:"Le ciel caché dans la montagne — une énergie immense contenue, disciplinée. Le Roi de Deniers maîtrise ses ressources par la sagesse et la patience accumulées.",es:"La puissance maîtrisée par la discipline et la tradition. Accumuler la sagesse des ancêtres pour nourrir les grandes entreprises à venir."},
+27:{cn:"頤 Yí",j:"Les commissures de la bouche. Persévérance apporte bonheur. Observer la façon dont on se nourrit et ce que l'on cherche à se mettre sous la dent.",cj:"Les commissures de la bouche : dans la persévérance, bonheur. Observer ce qu'on nourrit et comment on se nourrit.",im:"Au pied de la montagne, la foudre : image des commissures. L'homme supérieur est réservé dans ses paroles et modéré dans sa nourriture et sa boisson.",ci:"La montagne immobile en haut, le tonnerre actif en bas — les mâchoires. Ce que l'on choisit de nourrir (corps, esprit, âme) détermine ce que l'on devient.",es:"La nourriture comme acte sacré et métaphore cosmique. Les 8 de Deniers : le travail patient et régulier qui nourrit l'œuvre."},
+28:{cn:"大過 Dà Guò",j:"Prépondérance du grand. La poutre fléchit. Il est utile d'avoir quelque part où aller. Succès.",cj:"La prépondérance du grand : le grand est prépondérant. La rigidité est prépondérante, mais le bas et le haut sont doux.",im:"Le lac monte au-dessus des arbres : image de la grande prépondérance. L'homme supérieur, seul et sans peur, se retire du monde sans regret.",ci:"L'eau dépasse les arbres — la structure ploie sous un poids excessif. Le moment exige courage extraordinaire et décision. L'excès peut être créateur s'il est assumé.",es:"La crise créatrice où les structures ordinaires ne suffisent plus. Les 7 de Coupes : face à l'excès des possibles, choisir courageusement."},
+29:{cn:"坎 Kǎn",j:"L'Abîme. Si vous êtes sincère, vous avez succès dans votre cœur, et quoi que vous entrepreniez s'avère couronné de succès.",cj:"L'Abîme : danger double. L'eau coule et n'accroît pas son abondance. Aller dans le danger sans perdre sa confiance.",im:"L'eau coule et atteint son but : image de l'Abîme. L'homme supérieur marche dans la vertu constante et pratique l'enseignement des affaires.",ci:"L'eau ne s'arrête pas face au danger — elle coule dans les abîmes, les remplit et continue son chemin. La sincérité du cœur traverse tous les obstacles.",es:"L'initiation par le danger et l'eau. L'Impératrice, troisième Arcane Majeure, règne sur les eaux de l'inconscient, la fécondité née de la traversée des profondeurs."},
+30:{cn:"離 Lí",j:"Le Feu clairvoyant. Persévérance bénéfique. Succès. Prendre soin d'une vache apporte bonheur.",cj:"Le Feu clairvoyant : douceur adhère à la rectitude centrale. C'est pourquoi on dit succès.",im:"La clarté se lève deux fois : image du feu. L'homme supérieur éclaire les quatre coins du monde en perpétuant cette clarté.",ci:"Le soleil double — la lumière qui se lève sans cesse. L'attachement au monde visible, la clarté qui distingue et éclaire. La douceur au centre maintient la flamme.",es:"La lumière consciente d'elle-même. L'Empereur — 4e Arcane — ordonne le visible, donne forme et loi à la lumière. Le feu attaché qui structure et gouverne."},
+31:{cn:"咸 Xián",j:"Influence. Succès. La persévérance bénéfique. Prendre une jeune femme apporte bonheur.",cj:"Influence : la douceur est en haut et la rigidité en bas. Leurs deux forces s'émeuvent et répondent l'une à l'autre.",im:"Au-dessus de la montagne se trouve un lac : image de l'influence. L'homme supérieur accepte les hommes de bonne volonté.",ci:"Le lac couronne la montagne, le yin repose sur le yang — attraction mutuelle et spontanée. L'influence vraie n'est pas manipulation mais résonance profonde.",es:"La polarité amoureuse, l'attraction naturelle entre opposés complémentaires. Les 4 de Coupes : l'invitation à ouvrir le cœur, même dans la mélancolie."},
+32:{cn:"恆 Héng",j:"Durée. Succès. Pas de défaut. La persévérance bénéfique. Il est utile d'avoir quelque part où aller.",cj:"Durée : longue durée dans sa voie. La rigidité au-dessus, la douceur en dessous.",im:"Le tonnerre et le vent : image de la durée. L'homme supérieur se tient dans sa direction et ne change pas de voie.",ci:"Tonnerre et vent se renforcent mutuellement dans leur mouvement — la durée par l'activité constante, non par la rigidité. Persévérer dans le mouvement juste.",es:"La permanence dans le changement. Les 7 de Bâtons : tenir sa position face aux assauts répétés, maintenir le cap dans les tempêtes."},
+33:{cn:"遯 Dùn",j:"La Retraite. Succès. Dans les petites choses, la persévérance bénéfique.",cj:"La Retraite : succès. La retraite prend sa place dans l'ordre du monde.",im:"Sous le ciel, il y a une montagne : image de la retraite. L'homme supérieur tient les gens inférieurs à distance, non avec colère mais avec dignité.",ci:"La montagne s'élève sous le ciel mais ne peut l'atteindre — l'homme supérieur sait se retirer à temps. La retraite stratégique est une victoire.",es:"Le retrait comme acte de liberté. Les 4 d'Épées : la retraite contemplative qui préserve les forces pour de futurs combats."},
+34:{cn:"大壯 Dà Zhuàng",j:"La grande vigueur. La persévérance bénéfique.",cj:"La grande vigueur : la grande droiture. La rectitude du grand est puissance véritable.",im:"Le tonnerre est au-dessus du Ciel : image de la grande vigueur. L'homme supérieur ne foule pas des sentiers qui ne sont pas conformes à l'ordre établi.",ci:"Le tonnerre au-dessus du ciel — la force à son apogée. Mais la vraie vigueur n'est pas brutalité : elle s'exerce dans le respect de l'ordre naturel.",es:"La plénitude de la force yang. La Reine de Bâtons rayonne de cette vigueur naturelle et créatrice, ancrée dans sa propre autorité intérieure."},
+35:{cn:"晉 Jìn",j:"Progrès. Le puissant prince est honoré de nombreux chevaux. En un seul jour, il est reçu trois fois.",cj:"Progrès : avancer. La douceur avance en s'harmonisant avec le lumineux. La soumission au grand nourrit la vertu.",im:"La lumière sort de la terre : image du progrès. L'homme supérieur illumine lui-même sa vertu lumineuse.",ci:"Le soleil s'élève sur la terre — progrès naturel, lumière croissante. L'ascension rapide honore celui qui progresse, mais exige une base solide en bas.",es:"L'ascension vertueuse au grand jour. Les 2 de Bâtons : les premiers pas de la maîtrise, la vision qui s'élargit avec l'altitude."},
+36:{cn:"明夷 Míng Yí",j:"L'obscurcissement de la lumière. Dans l'adversité, la persévérance bénéfique.",cj:"L'obscurcissement de la lumière : la lumière entre dans la terre.",im:"La lumière entre dans la terre : image de l'obscurcissement. L'homme supérieur, quand il gouverne le peuple, voile sa lumière mais brille quand même.",ci:"Le soleil descend sous la terre — lumière cachée mais non éteinte. En temps de ténèbres, le sage cache son éclat pour le préserver.",es:"La sagesse dissimulée en temps d'obscurité. Les 9 de Deniers : la richesse intérieure protégée par la discrétion et la patience."},
+37:{cn:"家人 Jiā Rén",j:"La famille. La persévérance de la femme bénéfique.",cj:"La famille : les positions correctes de l'homme et de la femme à l'intérieur et à l'extérieur.",im:"Le vent sort du feu : image de la famille. L'homme supérieur règle ses paroles selon la vérité et sa conduite selon la constance.",ci:"Le vent naît de la chaleur du feu familial — les paroles et les actes du maître de maison émanent de son cœur comme le vent du foyer.",es:"L'ordre naturel dans la cellule familiale comme miroir de l'ordre cosmique. Les 10 d'Épées : la fin d'un cycle, la transmission aux générations."},
+38:{cn:"睽 Kuí",j:"Opposition. Dans les petites choses, bonheur.",cj:"Opposition : le feu se déplace vers le haut, le lac vers le bas. Deux femmes vivent ensemble, mais leurs volontés ne s'accordent pas.",im:"Le feu en haut, l'eau en bas : image de l'opposition. L'homme supérieur se comporte de même parmi les hommes tout en restant différent.",ci:"Deux forces qui s'éloignent — mais dans leur opposition même, elles se définissent. L'opposition n'est pas ennemi de l'harmonie : elle en est la tension créatrice.",es:"La divergence comme source de richesse. Le Cavalier de Bâtons : l'élan qui cherche sa voie malgré les obstacles, la rencontre féconde de l'altérité."},
+39:{cn:"蹇 Jiǎn",j:"L'Obstruction. L'occident et le sud sont favorables. L'est et le nord ne le sont pas. Il est utile de voir le grand homme.",cj:"Obstruction : la difficulté est en avant. Voir le grand homme : aller là-bas a de la valeur.",im:"L'eau sur la montagne : image de l'obstruction. L'homme supérieur revient à lui-même et cultive sa vertu.",ci:"La montagne bloque l'eau — l'obstacle est réel. Mais tout obstacle invite à creuser en soi-même, à trouver la source intérieure que rien ne peut bloquer.",es:"L'initiation par l'obstacle. Les 3 de Coupes : célébrer la victoire partielle, se ressourcer dans l'amitié avant de reprendre le chemin difficile."},
+40:{cn:"解 Xiè",j:"La Délivrance. L'ouest et le sud sont favorables. S'il n'y a rien où aller, revenir apporte bonheur. S'il y a quelque chose où aller, les atteindre rapidement apporte bonheur.",cj:"La délivrance : le danger produit le mouvement.",im:"Le tonnerre et la pluie : image de la délivrance. L'homme supérieur pardonne les fautes et absout les criminels.",ci:"Après la tension de l'orage, la pluie libératrice. La délivrance est complète quand on agit vite, sans s'attarder sur le passé.",es:"La dissolution du nœud. Les 5 de Bâtons : le combat qui, une fois résolu, libère une énergie nouvelle pour construire."},
+41:{cn:"損 Sǔn",j:"Diminution. Avec sincérité, bonheur suprême, pas de défaut, on peut persévérer. Il est utile d'avoir quelque part où aller.",cj:"Diminution : diminuer ce qui est en bas pour ajouter au haut.",im:"La montagne au-dessus du lac : image de la diminution. L'homme supérieur réprime sa colère et étouffe ses désirs.",ci:"Le lac s'abaisse pour nourrir la montagne — sacrifice du bas au profit du haut. La vraie diminution est offrande et enrichissement de l'essentiel.",es:"Le sacrifice volontaire qui libère. Le Cavalier de Deniers : patience et économie, l'énergie focalisée vers un but précis."},
+42:{cn:"益 Yì",j:"Augmentation. Il est utile d'avoir quelque part où aller. Il est utile de traverser les grandes eaux.",cj:"Augmentation : augmenter ce qui est en bas, diminuer ce qui est en haut.",im:"Vent et tonnerre : image de l'augmentation. L'homme supérieur, s'il voit le bien, se hâte de le pratiquer.",ci:"Le vent nourrit le tonnerre, le tonnerre stimule le vent — échange mutuellement bénéfique. L'augmentation vraie redistribue en descendant vers le bas.",es:"La générosité cosmique. Les 8 d'Épées : apprendre à recevoir ce qui vient, même lorsque la vision est temporairement voilée."},
+43:{cn:"夬 Guài",j:"La percée. On doit proclamer la chose à la cour du roi. On doit annoncer la vérité, même si cela est dangereux. Ne pas prévenir sa propre ville. Il ne sert à rien d'avoir recours aux armes.",cj:"La percée : la rigidité met à nu la douceur.",im:"L'eau monte jusqu'au ciel : image de la percée. L'homme supérieur distribue la richesse en bas et s'abstient de s'y complaire.",ci:"L'eau s'accumule jusqu'au ciel — elle doit éclater. La percée est inévitable et doit se faire dans la lumière, publiquement, sans violence cachée.",es:"La résolution décisive. Le Roi de Coupes : l'autorité émotionnelle qui tranche avec sagesse et sans cruauté."},
+44:{cn:"姤 Gòu",j:"La rencontre. La femme est puissante. Ne pas prendre une telle femme.",cj:"La rencontre : la douceur rencontre la rigidité.",im:"Sous le Ciel, le vent : image de la rencontre. Le prince publie ses ordres et les adresse aux quatre coins du monde.",ci:"Le vent balaye tout le ciel en rencontrant chaque chose — rencontre inattendue, légère mais pénétrante. Discerner entre la rencontre fertil et la tentation dissolvante.",es:"La rencontre inopinée avec la force yin. Les 7 d'Épées : la tentation de l'esquive, du détour, de la ruse face à l'adversité."},
+45:{cn:"萃 Cuì",j:"La Réunion. Succès. Le roi approche de son temple. Il est utile de voir le grand homme. Cela apporte succès. La persévérance est bénéfique.",cj:"La réunion : la douceur est à sa place et répond à la rigidité centrale.",im:"L'eau sur la terre : image de la réunion. L'homme supérieur renouvelle ses armes pour faire face à l'imprévu.",ci:"Le lac repose sur la terre — les eaux se rassemblent. La réunion des forces humaines autour d'un centre sacré. Prévoir les dangers quand tout va bien.",es:"L'assemblée spirituelle. Les 2 de Coupes : l'union de deux âmes autour d'un idéal commun, fondation de tout rassemblement authentique."},
+46:{cn:"升 Shēng",j:"La Poussée vers le haut. Succès suprême. Il faut voir le grand homme. Pas de crainte. Une expédition vers le sud apporte bonheur.",cj:"La poussée vers le haut : la douceur s'élève au moment propice.",im:"Au milieu de la terre, le bois pousse : image de la poussée vers le haut. L'homme supérieur, avec attention et dévouement, accumule les petites choses pour obtenir le haut et le grand.",ci:"La graine germe silencieusement dans la terre, progressant centimètre par centimètre. La croissance patiente des petites choses qui s'accumulent vers le grand.",es:"L'ascension organique et patiente. Les 5 de Deniers : paradoxalement, c'est dans la difficulté apparente que germent les vraies ressources intérieures."},
+47:{cn:"困 Kùn",j:"Épuisement. Succès. Persévérance, grand homme. Bonheur. Pas de défaut. Quand on a des choses à dire, on n'est pas cru.",cj:"L'épuisement : la rigidité est cachée.",im:"L'eau s'en va au-dessous du lac : image de l'épuisement. L'homme supérieur risque sa vie pour accomplir sa volonté.",ci:"Le lac s'est vidé — l'eau est descendue. L'épuisement extérieur ne détruit pas l'homme de bien intérieurement plein. Sa parole ne porte plus : il agit.",es:"L'épreuve de l'isolement et du dépouillement. Les 5 de Coupes : deuil nécessaire, perte qui révèle ce qui reste vraiment."},
+48:{cn:"井 Jǐng",j:"Le Puits. On peut changer la ville mais pas le puits. Pas de perte, pas de gain. Va et viens, et le puits reste le puits.",cj:"Le Puits : l'eau nourrissant le bois. Le puits nourrit et ne tarit pas — c'est la vertu du Puits.",im:"L'eau sur le bois : image du puits. L'homme supérieur encourage le peuple au travail et l'exhorte à s'entraider.",ci:"Le seau descend dans le puits — remonte chargé de vie. La ressource essentielle ne change pas quand tout change autour. Veiller à ce que le puits reste accessible à tous.",es:"La source inépuisable au centre de la communauté. Les 6 de Coupes : la mémoire heureuse, le retour aux sources qui régénère."},
+49:{cn:"革 Gé",j:"La Révolution. Au jour de votre accomplissement, foi suprême. Succès suprême. Persévérance bénéfique. Le regret disparaît.",cj:"Révolution : eau et feu s'éteignent mutuellement.",im:"Au milieu du lac, il y a du feu : image de la révolution. L'homme supérieur ordonne le calendrier et clarifie les saisons.",im:"L'eau étouffe le feu, le feu évapore l'eau — transformation radicale et irréversible. Le Valet de Coupes : l'émissaire du changement qui apporte un message nouveau.",es:"La mue nécessaire. Le changement qui ne peut être évité doit être accompli avec clarté et cohérence. Révolution juste : non violence, mais transformation profonde."},
+50:{cn:"鼎 Dǐng",j:"Le Chaudron. Bonheur suprême. Succès.",cj:"Le Chaudron : image de la transformation. Ramasser le bois par le bas, faire cuire en haut.",im:"Sur le bois, il y a du feu : image du chaudron. L'homme supérieur stabilise sa destinée en maintenant sa position correcte.",ci:"Le trépied sacré où les offrandes se transforment sous l'action du feu. Le chaudron cuit les matières brutes en nourriture spirituelle — transmutation alchimique.",es:"La grande transformation par le feu sacré. Les 8 de Bâtons : l'énergie de la transmutation en plein mouvement, vecteur de messages divins."},
+51:{cn:"震 Zhèn",j:"L'Ébranlement. Succès. Le tonnerre vient : terreur et effroi. Puis il fait rire de bon cœur. Le tonnerre terrifie à cent lis à la ronde ; lui ne laisse pas tomber la cuiller sacrificielle.",cj:"L'ébranlement : le tonnerre vient terrifiant. Crainte mène au bonheur.",im:"Le tonnerre répété : image de l'ébranlement. L'homme supérieur, saisi de crainte et de tremblement, s'examine lui-même.",ci:"Le tonnerre double — choc sur choc. La peur sacrée qui réveille et purifie. Celui qui maintient l'axe de son être face à l'épreuve mérite la responsabilité rituelle.",es:"Le Pape — 5e Arcane — est l'initiateur, celui qui transmet le choc de la révélation. L'ébranlement sacré qui transforme la terreur en connaissance."},
+52:{cn:"艮 Gèn",j:"L'Immobilisation. Immobiliser son dos, ne plus sentir son corps. Va dans la cour, ne voit pas les gens. Pas de défaut.",cj:"L'immobilisation : arrêt au moment propice.",im:"Les montagnes s'appuient dos à dos : image de l'immobilisation. L'homme supérieur ne laisse pas ses pensées dépasser leur situation.",ci:"Deux montagnes dos à dos — chacune immobile en elle-même. L'arrêt véritable n'est pas passivité mais pleine présence à l'instant, sans projection ni fuite.",es:"La Justice — 8e Arcane — est l'immobilisation juste, la pesée impartiale. L'arrêt qui mesure, équilibre, et rend à chaque chose sa valeur réelle."},
+53:{cn:"漸 Jiàn",j:"Le Développement. La jeune fille est donnée en mariage. Bonheur. La persévérance bénéfique.",cj:"Le développement graduel de la femme qui attend son époux.",im:"Sur la montagne se trouve un arbre : image du développement graduel. L'homme supérieur reste dans une vertu honorable et améliore les mœurs.",ci:"L'arbre pousse lentement sur la montagne — chaque étape nécessaire avant la suivante. Le mariage juste respecte l'ordre des rites : rien ne se précipite.",es:"La progression par étapes. Les 3 d'Épées : douleur nécessaire d'une transition, séparation qui permet un attachement plus juste."},
+54:{cn:"歸妹 Guī Mèi",j:"Le Mariage de la sœur cadette. Entreprendre quelque chose apporte malheur. Rien n'est propice.",cj:"Le ciel et la terre ne communiquent pas, et les dix mille êtres ne s'épanouissent pas. Mariage de la cadette : fin et commencement de l'être humain.",im:"Au-dessus du lac se trouve le tonnerre : image du mariage de la cadette. L'homme supérieur connaît l'impermanence dans la durée éternelle.",ci:"La cadette suit son époux sans être consultée — le désir qui prend les devants. Mais la passion sans discernement conduit à la désillusion.",es:"La subordination provisoire acceptée comme étape. Le Valet de Bâtons : jeunesse et enthousiasme qui apprennent les limites nécessaires de l'ardeur."},
+55:{cn:"豐 Fēng",j:"L'Abondance. Succès. Le roi l'atteint. Pas de chagrin. Être comme le soleil à son zénith.",cj:"L'abondance est grande. La clarté par le mouvement, c'est pourquoi abondance.",im:"Le tonnerre et la foudre viennent tous deux : image de l'abondance. L'homme supérieur décide les procès et met les châtiments à exécution.",ci:"Tonnerre et lumière ensemble — la plénitude de puissance et de clarté. L'abondance au zénith est passagère comme le midi : en jouir pleinement sans s'y accrocher.",es:"Le plein accomplissement, le midi de l'existence. Les 10 de Bâtons : le faîte de la réalisation qui commence à peser — l'abondance demande à être partagée."},
+56:{cn:"旅 Lǚ",j:"Le Voyageur. Succès dans les petites choses. La persévérance du voyageur apporte bonheur.",cj:"Le voyageur : douceur au centre et adhésion à la rigidité extérieure.",im:"Sur la montagne, il y a du feu : image du voyageur. L'homme supérieur est judicieux et prudent dans l'imposition des peines et ne prolonge pas les procédures.",ci:"Le feu court sur la montagne sans s'attarder — le voyageur ne s'enracine nulle part. La liberté du pèlerin : légèreté, discernement, absence d'attachement excessif.",es:"La condition du pèlerin spirituel. Les 4 de Bâtons : l'étape joyeuse, le repos du voyageur dans la fête qui régénère les forces pour continuer la route."},
+57:{cn:"巽 Xùn",j:"Le Vent, la douceur pénétrante. Succès dans les petites choses. Il est utile d'avoir quelque part où aller. Il est utile de voir le grand homme.",cj:"La douceur pénétrante : la douceur s'avance par répétition, la volonté s'accomplit.",im:"Les vents se suivent : image de la douceur pénétrante. L'homme supérieur répand ses ordres et met ses affaires à exécution.",ci:"Le vent double — répétition de la pénétration douce et constante. Non pas le coup d'éclat mais l'influence persévérante qui transforme imperceptiblement.",es:"Le Chariot — 7e Arcane — est la maîtrise par la pénétration continue. Le vent qui façonne la roche : la volonté disciplinée qui surmonte tous les obstacles."},
+58:{cn:"兌 Duì",j:"Le Lac, la sérénité. Succès. La persévérance bénéfique.",cj:"La sérénité : la douceur est au centre et la rigidité à l'extérieur.",im:"Les lacs se suivent : image de la sérénité. L'homme supérieur s'associe aux amis pour la discussion et la pratique.",ci:"Deux lacs communicants — la joie qui se répand et se partage. La sérénité n'est pas insouciance mais profondeur tranquille, ouverte à l'échange joyeux.",es:"L'Amoureux — 6e Arcane — est le choix du cœur ouvert. Les deux lacs qui se rejoignent évoquent la rencontre amoureuse, l'échange qui enrichit les deux âmes."},
+59:{cn:"渙 Huàn",j:"La Dissolution. Succès. Le roi approche de son temple. Il est utile de traverser les grandes eaux. La persévérance bénéfique.",cj:"La dissolution : la rigidité vient et n'est pas épuisée. La douceur prend la position extérieure et s'accorde avec le haut.",im:"Le vent souffle sur l'eau : image de la dispersion. Les anciens rois, pour honorer les dieux, érigèrent des temples.",ci:"Le vent disperse les eaux gelées — dissolution des obstructions, ouverture des passages. Le rassemblement spirituel autour des rites sacrés recrée l'unité dispersée.",es:"La dissolution des rigidités et des séparations. Les 5 d'Épées : après le conflit, reconnaître les pertes et laisser se disperser les tensions accumulées."},
+60:{cn:"節 Jié",j:"La Limitation. Succès. Une limitation austère ne peut être persistante.",cj:"La limitation : l'eau au-dessus du lac est la limitation.",im:"L'eau au-dessus du lac : image de la limitation. L'homme supérieur crée les chiffres et les mesures, et examine la nature de la vertu et de l'action juste.",ci:"Le lac ne peut contenir plus qu'il n'en faut — la rive est sa mesure. La limitation juste est créatrice : elle donne forme à l'énergie sans la briser.",es:"La mesure comme sagesse. Le Cavalier de Coupes : la maîtrise des élans émotionnels qui permet l'action efficace et la relation juste."},
+61:{cn:"中孚 Zhōng Fú",j:"La Vérité intérieure. Cochons et poissons. Bonheur. Il est utile de traverser les grandes eaux. La persévérance bénéfique.",cj:"La vérité intérieure : la douceur est intérieure et la rigidité prend la position centrale.",im:"Au-dessus du lac se trouve le vent : image de la vérité intérieure. L'homme supérieur discute les affaires pénales pour retarder les exécutions.",ci:"Le vent souffle sur le lac en pénétrant jusqu'au fond — la vérité intérieure touche même les êtres les plus humbles. La confiance sincère traverse tous les obstacles.",es:"La foi sincère comme force de transformation. Le Cavalier d'Épées : la pensée tranchante animée par une conviction intérieure authentique."},
+62:{cn:"小過 Xiǎo Guò",j:"Prépondérance du petit. Succès. La persévérance bénéfique. On peut faire de petites choses, pas de grandes. L'oiseau volant laisse le message : il ne convient pas de monter, mais de descendre.",cj:"La prépondérance du petit : le petit est prépondérant et le succès s'ensuit.",im:"Sur la montagne, il y a le tonnerre : image de la prépondérance du petit. L'homme supérieur, dans sa conduite, dépasse quelque peu ce qui est ordinaire.",ci:"Le tonnerre au-dessus de la montagne — un excès d'énergie dans ce qui est petit. L'oiseau sait qu'il vaut mieux descendre que de prétendre trop haut.",es:"La sagesse de rester modeste dans ses ambitions. Les 3 de Bâtons : l'élan maîtrisé, les premiers fruits de l'entreprise qui encouragent à continuer."},
+63:{cn:"既濟 Jì Jì",j:"Après l'accomplissement. Succès dans les petites choses. La persévérance est bénéfique au début, le désordre à la fin.",cj:"Après l'accomplissement : succès. La douceur prend la position centrale. La fin apporte le désordre.",im:"L'eau au-dessus du feu : image de l'accomplissement. L'homme supérieur pense au malheur et prend des précautions contre lui.",ci:"L'eau et le feu en parfait équilibre — la plénitude atteinte. Mais toute plénitude porte en elle le germe du déclin : vigilance après le succès.",es:"Le point culminant du cycle. Les 10 de Coupes : la joie de l'accomplissement familial et spirituel, plénitude heureuse mais nécessairement transitoire."},
+64:{cn:"未濟 Wèi Jì",j:"Avant l'accomplissement. Succès. Le petit renard a presque traversé. Son queue est mouillée. Rien n'est propice.",cj:"Avant l'accomplissement : la douceur prend la position centrale.",im:"Le feu au-dessus de l'eau : image avant l'accomplissement. L'homme supérieur est attentif à discerner les choses.",ci:"Le feu monte, l'eau descend — désunion de ce qui pourrait s'unir. Tout est possible mais rien n'est encore accompli. Le petit renard hésitant : prudence à la toute fin.",es:"Le seuil du grand passage, la promesse non encore tenue. Les 6 de Bâtons : la victoire en vue mais pas encore saisie — maintenir l'élan jusqu'au bout."}
+};
+
+// Tarot suit data
+const SUITS = {
+  b:  {name:"Bâtons",el:"Feu",color:"#7F1D1D"},
+  c:  {name:"Coupes",el:"Eau",color:"#1E3A8A"},
+  e:  {name:"Épées",el:"Air",color:"#78350F"},
+  d:  {name:"Deniers",el:"Terre",color:"#14532D"},
+  bM: {name:"Bâtons",el:"Feu",color:"#D4AF37"},
+  cM: {name:"Coupes",el:"Eau",color:"#D4AF37"},
+  eM: {name:"Épées",el:"Air",color:"#D4AF37"},
+  dM: {name:"Deniers",el:"Terre",color:"#D4AF37"}
+};
+
+const H = {
+  1:{n:"Élan Créatif",s:"eM",t:"I · Le Bateleur",ti:6,bi:6},
+  2:{n:"Élan Réceptif",s:"dM",t:"II · La Papesse",ti:0,bi:0},
+  3:{n:"Difficultés initiales",s:"c",t:"8 de Coupes",ti:4,bi:1},
+  4:{n:"Immaturité",s:"d",t:"4 de Deniers",ti:1,bi:5},
+  5:{n:"Attendre",s:"c",t:"Reine de Coupes",ti:5,bi:0},
+  6:{n:"Plaider sa cause",s:"e",t:"6 d'Épées",ti:7,bi:5},
+  7:{n:"Armée",s:"d",t:"3 de Deniers",ti:0,bi:5},
+  8:{n:"Alliance",s:"c",t:"As de Coupes",ti:5,bi:0},
+  9:{n:"Petit Apprivoisé",s:"e",t:"Roi d'Épées",ti:7,bi:4},
+  10:{n:"Démarche",s:"e",t:"Reine d'Épées",ti:7,bi:3},
+  11:{n:"Prospérité",s:"d",t:"Reine de Deniers",ti:0,bi:7},
+  12:{n:"Adversité",s:"e",t:"2 d'Épées",ti:7,bi:0},
+  13:{n:"S'entendre avec Tous",s:"e",t:"Valet d'Épées",ti:7,bi:5},
+  14:{n:"Grand Réalisé",s:"b",t:"Roi de Bâtons",ti:5,bi:7},
+  15:{n:"Se Tenir",s:"d",t:"2 de Deniers",ti:1,bi:0},
+  16:{n:"S'enthousiasmer",s:"b",t:"As de Bâtons",ti:4,bi:0},
+  17:{n:"Suivre",s:"c",t:"9 de Coupes",ti:3,bi:4},
+  18:{n:"Remédier au corrompu",s:"d",t:"6 de Deniers",ti:1,bi:6},
+  19:{n:"Approcher",s:"d",t:"Valet de Deniers",ti:0,bi:3},
+  20:{n:"Regarder",s:"e",t:"As d'Épées",ti:6,bi:0},
+  21:{n:"Mordre et Unir",s:"b",t:"9 de Bâtons",ti:5,bi:4},
+  22:{n:"Embellir",s:"d",t:"10 de Deniers",ti:1,bi:5},
+  23:{n:"Usure",s:"d",t:"As de Deniers",ti:1,bi:0},
+  24:{n:"Retour",s:"d",t:"7 de Deniers",ti:0,bi:4},
+  25:{n:"Spontanément",s:"e",t:"9 d'Épées",ti:7,bi:4},
+  26:{n:"Grand Apprivoisé",s:"d",t:"Roi de Deniers",ti:1,bi:7},
+  27:{n:"Nourrir",s:"d",t:"8 de Deniers",ti:1,bi:4},
+  28:{n:"Grand Excès",s:"c",t:"7 de Coupes",ti:3,bi:6},
+  29:{n:"Ravins",s:"cM",t:"III · L'Impératrice",ti:2,bi:2},
+  30:{n:"Lumière",s:"bM",t:"IV · L'Empereur",ti:5,bi:5},
+  31:{n:"Inciter",s:"c",t:"4 de Coupes",ti:3,bi:1},
+  32:{n:"Endurer",s:"b",t:"7 de Bâtons",ti:6,bi:4},
+  33:{n:"Faire Retraite",s:"e",t:"4 d'Épées",ti:7,bi:1},
+  34:{n:"Grand Force",s:"b",t:"Reine de Bâtons",ti:4,bi:7},
+  35:{n:"Avancer au Grand Jour",s:"b",t:"2 de Bâtons",ti:5,bi:0},
+  36:{n:"Lumière Obscurcie",s:"d",t:"9 de Deniers",ti:0,bi:5},
+  37:{n:"Gens du Clan",s:"e",t:"10 d'Épées",ti:6,bi:5},
+  38:{n:"Divergence",s:"b",t:"Cavalier de Bâtons",ti:5,bi:3},
+  39:{n:"Obstruction",s:"c",t:"3 de Coupes",ti:2,bi:1},
+  40:{n:"Délivrance",s:"b",t:"5 de Bâtons",ti:4,bi:2},
+  41:{n:"Diminuer",s:"d",t:"Cavalier de Deniers",ti:1,bi:4},
+  42:{n:"Augmenter",s:"e",t:"8 d'Épées",ti:6,bi:4},
+  43:{n:"Se montrer résolu",s:"c",t:"Roi de Coupes",ti:3,bi:7},
+  44:{n:"Être Accueillant",s:"e",t:"7 d'Épées",ti:7,bi:6},
+  45:{n:"Réunion",s:"c",t:"2 de Coupes",ti:3,bi:0},
+  46:{n:"Croissance",s:"d",t:"5 de Deniers",ti:0,bi:6},
+  47:{n:"Épuisement",s:"c",t:"5 de Coupes",ti:3,bi:2},
+  48:{n:"Le Puits",s:"c",t:"6 de Coupes",ti:2,bi:6},
+  49:{n:"Révolution",s:"c",t:"Valet de Coupes",ti:3,bi:5},
+  50:{n:"Chaudron",s:"b",t:"8 de Bâtons",ti:5,bi:6},
+  51:{n:"Ébranler",s:"bM",t:"V · Le Pape",ti:4,bi:4},
+  52:{n:"Stabiliser",s:"dM",t:"VIII · La Justice",ti:1,bi:1},
+  53:{n:"Progresser pas à pas",s:"e",t:"3 d'Épées",ti:6,bi:1},
+  54:{n:"Mariage de la Cadette",s:"b",t:"Valet de Bâtons",ti:4,bi:3},
+  55:{n:"Abondance",s:"b",t:"10 de Bâtons",ti:4,bi:5},
+  56:{n:"Voyageur",s:"b",t:"4 de Bâtons",ti:5,bi:1},
+  57:{n:"Se modeler",s:"eM",t:"VII · Le Chariot",ti:6,bi:6},
+  58:{n:"Échanger",s:"cM",t:"VI · L'Amoureux",ti:3,bi:3},
+  59:{n:"Dénouer",s:"e",t:"5 d'Épées",ti:6,bi:2},
+  60:{n:"Mesure",s:"c",t:"Cavalier de Coupes",ti:2,bi:3},
+  61:{n:"Juste Confiance",s:"e",t:"Cavalier d'Épées",ti:6,bi:3},
+  62:{n:"Petit Excès",s:"b",t:"3 de Bâtons",ti:4,bi:1},
+  63:{n:"Déjà traversé",s:"c",t:"10 de Coupes",ti:2,bi:5},
+  64:{n:"Pas encore traversé",s:"b",t:"6 de Bâtons",ti:5,bi:2}
+};
+
+// Trigram resonances with Tarot suits
+const TAROT_RES = {
+  b:"Le feu est l'élément des Bâtons — passion, créativité, transformation. Les lames de Bâtons touchent à l'élan vital, aux projets, à la volonté de manifester dans le monde.",
+  c:"L'eau est l'élément des Coupes — sentiment, intuition, relations amoureuses. Les lames de Coupes explorent la vie émotionnelle, les liens du cœur, la profondeur de l'âme.",
+  e:"L'air est l'élément des Épées — pensée, conflit, discernement. Les lames d'Épées traversent les illusions, affrontent les épreuves et révèlent la vérité nue.",
+  d:"La terre est l'élément des Deniers — matière, corps, ressources. Les lames de Deniers ancrent dans le concret, la santé, le travail et la prospérité matérielle.",
+  bM:"Arcane Majeure des Bâtons : force cosmique incarnée dans le feu créateur ou transformateur. Les Arcanes Majeures représentent les grandes forces archétypales qui dépassent l'individu.",
+  cM:"Arcane Majeure des Coupes : puissance cosmique manifestée dans la profondeur des eaux. Force archétypale gouvernant les cycles émotionnels et spirituels profonds.",
+  eM:"Arcane Majeure des Épées : principe cosmique de l'intelligence pure, du discernement et de la volonté créatrice ou analytique.",
+  dM:"Arcane Majeure des Deniers : force cosmique de la manifestation matérielle et spirituelle, de l'ordre, de la mesure et de la justice."
+};
+
+function sym(n){ return String.fromCodePoint(0x4DC0 + n - 1); }
+
+// Build table
+const tbl = document.getElementById('hexTable');
+let html = '';
+html += `<tr><td></td><td></td><td colspan="8" class="axis-title" style="padding-bottom:5px;letter-spacing:0.16em;">✦ &nbsp; TRIGRAMMES CONSTITUANTS SUPÉRIEURS &nbsp; ✦</td></tr>`;
+html += '<tr><td style="min-width:28px"></td><td style="min-width:28px"></td>';
+for(let c=0;c<8;c++){
+  html += `<th class="col-header"><span class="trig-sym">${TRIG[c]}</span><span class="trig-nm">${TNMS[c]}</span></th>`;
+}
+html += '</tr>';
+
+for(let r=0;r<8;r++){
+  html += '<tr>';
+  if(r===0){ html += `<td rowspan="8" class="v-axis">✦ TRIGRAMMES CONSTITUANTS INFÉRIEURS ✦</td>`; }
+  html += `<th class="row-header"><span class="trig-sym">${TRIG[r]}</span><span class="trig-nm">${TNMS[r]}</span></th>`;
+  for(let c=0;c<8;c++){
+    const h   = GRID[r][c];
+    const d   = H[h];
+    const cls = d.s;
+    const isPure = (r === c);
+    html += `<td><div class="hex-cell ${cls}" data-hex="${h}" onclick="openModal(${h})">
+      ${isPure ? '<div class="pure-bar"></div>' : ''}
+      <div class="h-top"><span class="h-num">${h}</span>${d.s.endsWith('M') ? '<span class="h-star">✦</span>' : ''}</div>
+      <div class="h-sym">${sym(h)}</div>
+      <div class="h-name">${d.n}</div>
+      <div class="h-tarot">${d.t}</div>
+    </div></td>`;
+  }
+  html += '</tr>';
+}
+tbl.innerHTML = html;
+
+// ─── MODAL LOGIC ──────────────────────────────────────────────────────────────
+let currentHex = null;
+const HEXNUMS = Object.keys(H).map(Number).sort((a,b)=>a-b);
+
+function openModal(n){
+  currentHex = n;
+  renderModal(n);
+  document.getElementById('modal').classList.add('open');
+  document.querySelectorAll('.hex-cell').forEach(c=>c.classList.remove('active'));
+  const el = document.querySelector(`[data-hex="${n}"]`);
+  if(el) el.classList.add('active');
+  // Reset to first tab
+  activateTab('jugement');
+}
+
+function closeModal(){
+  document.getElementById('modal').classList.remove('open');
+  document.querySelectorAll('.hex-cell').forEach(c=>c.classList.remove('active'));
+}
+
+function renderModal(n){
+  const d  = H[n];
+  const yk = YK[n];
+  const s  = d.s;
+  const si = SUITS[s];
+
+  // Header
+  document.getElementById('mSym').textContent = sym(n);
+  document.getElementById('mNum').textContent = `Hexagramme ${n} / 64`;
+  document.getElementById('mTitle').textContent = d.n;
+  document.getElementById('mCn').textContent = yk ? yk.cn : '';
+
+  // Badge
+  const isMajor = s.endsWith('M');
+  const badgeCls = 'badge-' + s;
+  const dot = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${si.color};margin-right:6px;"></span>`;
+  document.getElementById('mBadge').innerHTML =
+    `<span class="modal-tarot-badge ${badgeCls}">${dot}${isMajor?'⭐ Arcane Majeure · ':si.name+' · '}${d.t}</span>`;
+
+  // Jugement tab
+  document.getElementById('mJugement').innerHTML = yk ? yk.j : 'Données non disponibles.';
+  document.getElementById('mComJugement').innerHTML = yk ? yk.cj : '';
+
+  // Commentaire tab
+  document.getElementById('mImage').innerHTML = yk ? yk.im : '';
+  document.getElementById('mComImage').innerHTML = yk ? yk.ci : '';
+
+  // Trigrammes tab
+  const ti = d.ti; const bi = d.bi;
+  document.getElementById('mTrigInfo').innerHTML = `
+    <div class="trig-card">
+      <div class="tc-label">▲ Trigramme supérieur (extérieur)</div>
+      <div><span class="tc-sym">${TRIG[ti]}</span><span class="tc-name"><strong>${TNMS[ti]}</strong></span></div>
+      <div class="tc-attr">${TELM[ti]} · ${TATTR[ti]}</div>
+    </div>
+    <div class="trig-card">
+      <div class="tc-label">▼ Trigramme inférieur (intérieur)</div>
+      <div><span class="tc-sym">${TRIG[bi]}</span><span class="tc-name"><strong>${TNMS[bi]}</strong></span></div>
+      <div class="tc-attr">${TELM[bi]} · ${TATTR[bi]}</div>
+    </div>`;
+  document.getElementById('mEsoterique').innerHTML = yk ? yk.es : '';
+
+  // Tarot tab
+  const suit = s.replace('M','');
+  const suitFull = SUITS[suit] || SUITS[s];
+  document.getElementById('mTarotDetail').innerHTML =
+    `<strong>${d.t}</strong> — couleur ${si.name} (élément ${si.el})<br><br>
+    ${isMajor
+      ? `Cette carte est une <em>Arcane Majeure</em>, correspondant à l'hexagramme pur ${TNMS[ti]}/${TNMS[bi]} (même trigramme doublé). Les Arcanes Majeures gouvernent les grandes forces archétypales du cosmos.`
+      : `Cette carte appartient aux <em>Arcanes Mineures</em>, couleur ${si.name}. Elle correspond à l'hexagramme mixte formé par l'union du trigramme supérieur ${TNMS[ti]} et du trigramme inférieur ${TNMS[bi]}.`
+    }`;
+  document.getElementById('mResonance').innerHTML = TAROT_RES[s] || TAROT_RES[suit] || '';
+
+  // Nav
+  const idx = HEXNUMS.indexOf(n);
+  const prev = idx > 0 ? HEXNUMS[idx-1] : HEXNUMS[HEXNUMS.length-1];
+  const next = idx < HEXNUMS.length-1 ? HEXNUMS[idx+1] : HEXNUMS[0];
+  document.getElementById('navCenter').textContent = `${n} / 64 — ${d.n}`;
+  document.getElementById('navPrev').onclick = () => openModal(prev);
+  document.getElementById('navNext').onclick = () => openModal(next);
+}
+
+function activateTab(id){
+  document.querySelectorAll('.modal-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === id));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-'+id));
+}
+
+document.querySelectorAll('.modal-tab').forEach(t => {
+  t.addEventListener('click', () => activateTab(t.dataset.tab));
+});
+
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('modal').addEventListener('click', function(e){
+  if(e.target === this) closeModal();
+});
+document.addEventListener('keydown', e => {
+  if(!document.getElementById('modal').classList.contains('open')) return;
+  if(e.key === 'Escape') closeModal();
+  if(e.key === 'ArrowRight' && document.getElementById('navNext').onclick) document.getElementById('navNext').click();
+  if(e.key === 'ArrowLeft' && document.getElementById('navPrev').onclick) document.getElementById('navPrev').click();
+});
+</script>
+</body>
+</html>
