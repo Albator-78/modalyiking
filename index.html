@@ -711,6 +711,8 @@ function renderModal(n){
   document.getElementById('navCenter').textContent = `${n} / 64 — ${d.n}`;
   document.getElementById('navPrev').onclick = () => openModal(prev);
   document.getElementById('navNext').onclick = () => openModal(next);
+
+  renderLinks(n)
 }
 
 function activateTab(id){
@@ -732,6 +734,34 @@ document.addEventListener('keydown', e => {
   if(e.key === 'ArrowRight' && document.getElementById('navNext').onclick) document.getElementById('navNext').click();
   if(e.key === 'ArrowLeft' && document.getElementById('navPrev').onclick) document.getElementById('navPrev').click();
 });
+
+  const ORACLE_URL = 'https://albator-78.github.io/oracle-complet-yiking/';
+let tirage = null;
+
+function renderLinks(n) {
+  let h = '';
+  if (tirage && tirage.vers) {
+    if (n === tirage.prim)
+      h += `<a class="m-link" href="#" onclick="openModal(${tirage.vers});return false;">⟳ Hexagramme relatif : ${tirage.vers} · ${H[tirage.vers].n}</a>`;
+    else if (n === tirage.vers)
+      h += `<a class="m-link" href="#" onclick="openModal(${tirage.prim});return false;">← Hexagramme primaire : ${tirage.prim} · ${H[tirage.prim].n}</a>`;
+  }
+  h += `<a class="m-link" href="${ORACLE_URL}">🔮 Nouveau tirage à l'Oracle</a>`;
+  document.getElementById('mLinks').innerHTML = h;
+}
+
+// Ouverture automatique depuis l'Oracle : ?hex=30&vers=51
+(function () {
+  const q = new URLSearchParams(location.search);
+  const prim = parseInt(q.get('hex'), 10);
+  const vers = parseInt(q.get('vers'), 10);
+  if (!H[prim]) return;
+  tirage = { prim, vers: (H[vers] && vers !== prim) ? vers : null };
+  openModal(prim);
+  const cell = document.querySelector(`[data-hex="${prim}"]`);
+  if (cell) cell.scrollIntoView({ block: 'center' });
+})();
+  
 </script>
 </body>
 </html>
