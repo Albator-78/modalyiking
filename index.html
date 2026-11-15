@@ -742,16 +742,21 @@ let tirage = null;
 
 function renderLinks(n) {
   let h = '';
+  // Hexagramme primaire ↔ relatif (si on vient d'un tirage)
   if (tirage && tirage.vers) {
     if (n === tirage.prim)
       h += `<a class="m-link" href="#" onclick="openModal(${tirage.vers});return false;">⟳ Hexagramme relatif : ${tirage.vers} · ${H[tirage.vers].n}</a>`;
     else if (n === tirage.vers)
       h += `<a class="m-link" href="#" onclick="openModal(${tirage.prim});return false;">← Hexagramme primaire : ${tirage.prim} · ${H[tirage.prim].n}</a>`;
   }
-  h += `<a class="m-link" href="${ORACLE_URL}">🔮 Nouveau tirage à l'Oracle</a>`;
+  // Interprétation de l'Oracle pour CET hexagramme
+  let oracle = `${ORACLE_URL}?hex=${n}`;
+  if (tirage && tirage.vers && n === tirage.prim) oracle += `&vers=${tirage.vers}`;
+  h += `<a class="m-link" href="${oracle}" target="_blank" rel="noopener">🔮 Interprétation de l'Oracle</a>`;
+  h += `<a class="m-link" href="${ORACLE_URL}">🎲 Nouveau tirage</a>`;
   document.getElementById('mLinks').innerHTML = h;
 }
-
+  
 // Ouverture automatique depuis l'Oracle : ?hex=30&vers=51
 (function () {
   const q = new URLSearchParams(location.search);
