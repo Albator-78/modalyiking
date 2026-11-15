@@ -681,7 +681,7 @@ function renderModal(n){
   document.getElementById('mComImage').innerHTML = yk ? yk.ci : '';
 
   // Trigrammes tab
-  const ti = d.ti; const bi = d.bi;
+  const {ti, bi} = TRI[n];
   document.getElementById('mTrigInfo').innerHTML = `
     <div class="trig-card">
       <div class="tc-label">▲ Trigramme supérieur (extérieur)</div>
