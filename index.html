@@ -438,6 +438,8 @@ const GRID = [
   [11,26,5,9,34,14,43,1]
 ];
 
+  const TRI = {}; GRID.forEach((row, lo) => row.forEach((h, up) => TRI[h] = { bi: lo, ti: up }));
+
 // Yi King data: jugement, commentaire du jugement, image, commentaire image, ésotérique
 // Source : tradition confucéenne, commentaires des Dix Ailes (Shi Yi)
 const YK = {
