@@ -757,7 +757,29 @@ let tirage = null;
   let oracle = `${ORACLE_URL}?hex=${n}`;
   if (tirage && tirage.vers && n === tirage.prim) oracle += `&vers=${tirage.vers}`;
   h += `<a class="m-link" href="${oracle}" target="_blank" rel="noopener">🔮 Interprétation de l'Oracle</a>`;
-  
+
+  let correspondances = `${TAROT_BAGUA_URL}?hex=${n}`;
+
+if (
+  tirage &&
+  tirage.vers &&
+  n === tirage.prim
+) {
+  correspondances += `&vers=${tirage.vers}`;
+}
+
+h += `
+  <a
+    class="m-link"
+    href="${correspondances}"
+    target="_blank"
+    rel="noopener"
+  >
+    🃏 Tarot · Ba Gua · Wu Xing
+  </a>
+`;
+
+    
   // Lien vers Wengu Tartarie
   h += `<a class="m-link" href="http://wengu.tartarie.com/wg/wengu.php?l=Yijing&lang=fr&no=${n}" target="_blank" rel="noopener">📜 Voir sur Wengu</a>`;
   
